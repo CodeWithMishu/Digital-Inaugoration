@@ -378,7 +378,7 @@
             <!-- Use WebM format as primary source (more efficient) -->
             <source src="inauguration_animation.webm" type="video/webm">
             <!-- Fallback to compressed MP4 -->
-            <source src="inauguration_animation.mp4" type="video/mp4">
+            
             Your browser does not support the video tag.
         </video>
         <button class="exit-button">✕</button>
@@ -646,7 +646,7 @@
                     playPromise.then(() => {
                         // Playback started successfully
                         // You can unmute here if needed
-                        video.muted = false;
+                        video.muted = true;
                         video.playbackRate = 0.5; // Set playback speed
                     })
                     .catch(error => {
