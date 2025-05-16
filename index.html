@@ -15,6 +15,7 @@
             font-family: Arial, sans-serif;
             overflow: hidden;
             perspective: 1000px;
+            transition: background 1s ease;
         }
         
         .gift-box {
@@ -24,6 +25,7 @@
             transform-style: preserve-3d;
             cursor: pointer;
             transition: transform 0.5s ease;
+            animation: rollIn 2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
         
         .gift-box:hover {
@@ -44,6 +46,7 @@
             font-weight: bold;
             font-size: 1.2rem;
             text-align: center;
+            transition: background 1s ease, color 1s ease;
         }
         
         .box-lid {
@@ -53,7 +56,7 @@
             background: #d61a1f;
             border-radius: 8px;
             transform-origin: top;
-            transition: transform 0.8s ease;
+            transition: transform 0.8s ease, background 1s ease;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
         }
         
@@ -66,6 +69,7 @@
             left: 50%;
             transform: translateX(-50%);
             z-index: 1;
+            transition: background-color 1s ease;
         }
         
         .ribbon-horizontal {
@@ -77,6 +81,7 @@
             left: 0;
             transform: translateY(-50%);
             z-index: 1;
+            transition: background-color 1s ease;
         }
         
         .ribbon-bow {
@@ -95,6 +100,7 @@
             height: 40px;
             background-color: #d61a1f;
             border-radius: 40px 40px 0 0;
+            transition: background-color 1s ease;
         }
         
         .bow-left {
@@ -118,6 +124,7 @@
             transform: translateX(-50%);
             z-index: 3;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            transition: background-color 1s ease;
         }
         
         .gift-box.open .box-lid {
@@ -203,12 +210,11 @@
         
         .click-prompt {
             position: absolute;
-            color: #d61a1f;
             font-weight: bold;
             text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
             pointer-events: none;
             opacity: 0;
-            transition: opacity 0.3s ease, transform 0.5s ease;
+            transition: opacity 0.3s ease, transform 0.5s ease, color 1s ease;
             z-index: 5;
             animation: pulse 1.2s infinite alternate;
         }
@@ -286,6 +292,47 @@
             50% { background-position: 100% 50%; }
             100% { background-position: 0% 50%; }
         }
+
+        @keyframes rollIn {
+            0% {
+                transform: translateX(-100vw) rotate(-720deg) scale(0.3);
+                opacity: 0;
+            }
+            50% {
+                opacity: 0.7;
+            }
+            100% {
+                transform: translateX(0) rotate(0deg) scale(1);
+                opacity: 1;
+            }
+        }
+
+        .full-image-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 1s ease;
+        }
+
+        .full-image-container.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .celebration-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* This will cover the entire viewport */
+        }
     </style>
 </head>
 <body>
@@ -306,7 +353,7 @@
     
     <!-- Video container -->
     <div class="video-container">
-        <video class="video-animation" autoplay muted playbackRate="0.7">
+        <video class="video-animation" autoplay muted playbackRate="0.5">
             <!-- Replace with your actual video file -->
             <source src="inauguration_animation.mp4" type="video/mp4">
             Your browser does not support the video tag.
@@ -322,18 +369,112 @@
     </div>
 
     <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Wait for gift box animation to complete before starting color changes
+            setTimeout(() => {
+                startColorChanging();
+                startClickPrompts();
+            }, 2000); // 2000ms = 2s (matches the animation duration)
+        });
+
         const giftBox = document.querySelector('.gift-box');
         const surpriseMessage = document.querySelector('.surprise-message');
         const videoContainer = document.querySelector('.video-container');
         const video = document.querySelector('.video-animation');
         const exitButton = document.querySelector('.exit-button');
-        let clickPromptInterval;
         const finalWelcome = document.querySelector('.final-welcome');
         const celebrationParticles = document.querySelector('.celebration-particles');
+        const body = document.querySelector('body');
+        
+        const boxBody = document.querySelector('.box-body');
+        const boxLid = document.querySelector('.box-lid');
+        const ribbonVertical = document.querySelector('.ribbon-vertical');
+        const ribbonHorizontal = document.querySelector('.ribbon-horizontal');
+        const bowLeft = document.querySelector('.bow-left');
+        const bowRight = document.querySelector('.bow-right');
+        const bowKnot = document.querySelector('.bow-knot');
+        
+        let clickPromptInterval;
+        let colorChangeInterval;
+        let isBoxClicked = false;
+        
+        // Function to start changing colors
+        function startColorChanging() {
+            // Initial color change
+            changeColors();
+            
+            // Change colors every second
+            colorChangeInterval = setInterval(changeColors, 1000);
+        }
+        
+        // Update this function to use more appealing light colors
+        function getRandomColor() {
+            // Use a curated palette of visually pleasing light colors
+            const pleasingColors = [
+                '#8ecae6', // Light blue
+                '#ffb4a2', // Soft peach
+                '#a8dadc', // Light teal
+                '#e9c46a', // Soft yellow
+                '#b5e48c', // Light green
+                '#d8bbff', // Light purple
+                '#f4a261', // Light orange
+                '#ffd6ff', // Light pink
+                '#cdb4db', // Soft lavender
+                '#90dbf4', // Sky blue
+                '#fde2e4', // Light rose
+                '#caf0f8'  // Ice blue
+            ];
+            
+            return pleasingColors[Math.floor(Math.random() * pleasingColors.length)];
+        }
+        
+        // Update the generateUniqueColors function
+        function generateUniqueColors(count) {
+            // Predefined pleasing color combinations that work well together
+            const colorSets = [
+                // Background gradient, box, ribbon, bow, text
+                ['#dbe7e4', '#f0efeb', '#d4e09b', '#f6bd60', '#84a59d'],
+                ['#f8edeb', '#fcd5ce', '#f9dcc4', '#fec89a', '#e8e8e4'],
+                ['#e9edc9', '#ccd5ae', '#faedcd', '#d4a373', '#8f8f8f'],
+                ['#d8e2dc', '#ece4db', '#ffe5d9', '#ffcad4', '#9d8189'],
+                ['#caf0f8', '#ade8f4', '#90e0ef', '#48cae4', '#023e8a'],
+                ['#e2ece9', '#bee1e6', '#cddafd', '#dfe7fd', '#eac4d5'],
+                ['#e3f6f5', '#bae8e8', '#ffcfd2', '#ffd8be', '#2c698d'],
+                ['#f1faee', '#a8dadc', '#457b9d', '#e63946', '#1d3557']
+            ];
+            
+            // Choose one color set randomly from our predefined pleasing combinations
+            return colorSets[Math.floor(Math.random() * colorSets.length)];
+        }
+        
+        // Update the changeColors function
+        function changeColors() {
+            if (isBoxClicked) return;
+            
+            // Get a set of pleasing colors that work well together
+            const colors = generateUniqueColors(5);
+            
+            // Apply to background with gradient - using soft, pleasing gradients
+            body.style.background = `linear-gradient(135deg, ${colors[0]} 0%, ${colors[1]} 100%)`;
+            
+            // Apply to box elements with coordinated colors
+            boxBody.style.backgroundColor = colors[2];
+            boxLid.style.backgroundColor = colors[2]; 
+            ribbonVertical.style.backgroundColor = colors[3];
+            ribbonHorizontal.style.backgroundColor = colors[3];
+            bowLeft.style.backgroundColor = colors[4];
+            bowRight.style.backgroundColor = colors[4];
+            bowKnot.style.backgroundColor = colors[4];
+            
+            // Change text colors of prompts - use a contrasting color
+            document.querySelectorAll('.click-prompt').forEach(prompt => {
+                prompt.style.color = colors[4];
+                // Enhance text visibility with shadow based on background
+                prompt.style.textShadow = `0 0 5px rgba(255, 255, 255, 0.9)`;
+            });
+        }
         
         // Start spawning "Click box" texts
-        startClickPrompts();
-        
         function startClickPrompts() {
             // Create the first prompt
             createClickPrompt();
@@ -342,14 +483,15 @@
             clickPromptInterval = setInterval(createClickPrompt, 1000);
         }
         
+        // Update createClickPrompt to use more appealing colors
         function createClickPrompt() {
             const prompt = document.createElement('div');
             prompt.classList.add('click-prompt');
-            prompt.textContent = 'Click box';
+          prompt.textContent = 'Click on box';
             
             // Random position around the box
             const angle = Math.random() * Math.PI * 2;
-            const distance = 100 + Math.random() * 200; // Distance from center
+            const distance = 100 + Math.random() * 200;
             
             // Get box position
             const boxRect = giftBox.getBoundingClientRect();
@@ -360,11 +502,13 @@
             const x = boxCenterX + Math.cos(angle) * distance;
             const y = boxCenterY + Math.sin(angle) * distance;
             
-            // Apply styles
+            // Apply styles with a pleasing color
             prompt.style.left = `${x}px`;
             prompt.style.top = `${y}px`;
             prompt.style.transform = 'translate(-50%, -50%)';
             prompt.style.fontSize = `${16 + Math.random() * 10}px`;
+            prompt.style.color = getRandomColor(); // Use our new pleasing color function
+            prompt.style.fontWeight = 'bold';
             
             document.body.appendChild(prompt);
             
@@ -380,9 +524,26 @@
             }, 3000 + Math.random() * 2000);
         }
         
+        // Update gift box click handler
         giftBox.addEventListener('click', () => {
+            // Set flag to stop color changing
+            isBoxClicked = true;
+            
+            // Stop color changing
+            clearInterval(colorChangeInterval);
+            
             // Stop spawning click prompts
             clearInterval(clickPromptInterval);
+            
+            // Reset to original colors for the animation
+            body.style.background = 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)';
+            boxBody.style.backgroundColor = '#d61a1f';
+            boxLid.style.backgroundColor = '#d61a1f';
+            ribbonVertical.style.backgroundColor = '#ffd700';
+            ribbonHorizontal.style.backgroundColor = '#ffd700';
+            bowLeft.style.backgroundColor = '#d61a1f';
+            bowRight.style.backgroundColor = '#d61a1f';
+            bowKnot.style.backgroundColor = '#d61a1f';
             
             // Remove all existing prompts
             document.querySelectorAll('.click-prompt').forEach(prompt => {
@@ -393,7 +554,7 @@
             // Open the box first
             giftBox.classList.add('open');
             
-            // After the box opens, show brief confetti and then the video
+            // Rest of your existing click handler code...
             setTimeout(() => {
                 // Create confetti effect
                 createConfetti();
@@ -424,19 +585,14 @@
             }, 500);
         });
         
-        // Slow down video playback when it starts
+        // Update the video playback rate in the play event listener
         video.addEventListener('play', () => {
-            video.playbackRate = 0.7; // 70% of normal speed (adjust as needed)
+            video.playbackRate = 0.5; // Changed from 0.7 to 0.5 (50% of normal speed)
         });
         
-        // Show exit button when video ends
+        // Replace or modify the video ended event listener
         video.addEventListener('ended', () => {
-            exitButton.classList.add('visible');
-        });
-        
-        // Handle exit button click - updated to show final welcome message
-        exitButton.addEventListener('click', () => {
-            // Exit fullscreen
+            // Auto exit fullscreen when video ends
             if (document.exitFullscreen) {
                 document.exitFullscreen();
             } else if (document.webkitExitFullscreen) {
@@ -448,10 +604,43 @@
             // Hide video container
             videoContainer.classList.remove('show');
             
-            // Show the final welcome message with animations
+            // Show welcome message
             finalWelcome.classList.add('visible');
+            
+            // Create celebration particles for welcome message
             createCelebrationParticles();
+            
+            // Set timeout to show 100years image after 5 seconds
+            setTimeout(() => {
+                // Hide welcome message
+                finalWelcome.classList.remove('visible');
+                
+                // Show the image container
+                const imageContainer = document.createElement('div');
+                imageContainer.classList.add('full-image-container');
+                
+                // Create image element
+                const celebrationImage = document.createElement('img');
+                celebrationImage.src = '100years.jpg';
+                celebrationImage.alt = 'Celebration - 100 Years';
+                celebrationImage.classList.add('celebration-image');
+                
+                // Add image to container
+                imageContainer.appendChild(celebrationImage);
+                
+                // Add container to document
+                document.body.appendChild(imageContainer);
+                
+                // Add fade-in animation
+                setTimeout(() => {
+                    imageContainer.classList.add('visible');
+                }, 100);
+                
+            }, 5000); // 5 seconds
         });
+
+        // Remove the exit button click event since we auto-exit now
+        // exitButton.addEventListener('click', ...)
         
         function createConfetti() {
             for (let i = 0; i < 100; i++) {
