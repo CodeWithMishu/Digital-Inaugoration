@@ -323,6 +323,7 @@
             opacity: 0;
             visibility: hidden;
             transition: opacity 1s ease;
+            padding: 10px; /* Add some padding */
         }
 
         .full-image-container.visible {
@@ -331,9 +332,11 @@
         }
 
         .celebration-image {
-            width: 100%;
-            height: 100%;
-            object-fit: cover; /* This will cover the entire viewport */
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain; /* Changed from cover to contain */
+            object-position: center center; /* Ensures proper centering */
+            margin: 0 auto; /* Center horizontally */
         }
 
         .play-button {
@@ -718,13 +721,45 @@
                 // Add fade-in animation
                 setTimeout(() => {
                     imageContainer.classList.add('visible');
+                    
+                    // Check if image is loaded, then handle aspect ratio
+                    celebrationImage.onload = function() {
+                        adjustImageDisplay(celebrationImage);
+                    };
+                    
+                    // In case image is already loaded
+                    if (celebrationImage.complete) {
+                        adjustImageDisplay(celebrationImage);
+                    }
                 }, 100);
                 
             }, 5000); // 5 seconds
         });
 
-        // Remove the exit button click event since we auto-exit now
-        // exitButton.addEventListener('click', ...)
+        // Add this new function to adjust the image display
+        function adjustImageDisplay(img) {
+            const imgWidth = img.naturalWidth;
+            const imgHeight = img.naturalHeight;
+            const aspectRatio = imgWidth / imgHeight;
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+            const viewportRatio = viewportWidth / viewportHeight;
+            
+            // If image is taller than the viewport ratio (likely cropping top)
+            if (aspectRatio < viewportRatio) {
+                img.style.objectFit = 'contain'; // Change to contain instead of cover
+                img.style.maxHeight = '95vh'; // Ensure some margin
+                
+                // If very wide image, we might need to handle differently
+                if (aspectRatio < 0.6) {
+                    img.style.objectFit = 'contain';
+                    img.style.maxWidth = '90vw';
+                }
+            } else {
+                // For wide images, keep cover but ensure vertical centering
+                img.style.objectPosition = 'center center';
+            }
+        }
         
         function createConfetti() {
             for (let i = 0; i < 100; i++) {
