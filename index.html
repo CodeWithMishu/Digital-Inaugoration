@@ -379,7 +379,7 @@
     <div class="video-container">
         <video class="video-animation" autoplay muted playsinline>
             <!-- Use WebM format as primary source (more efficient) -->
-            <source src="inauguration_animation.webm" type="video/webm">
+            <source src="inauguration.mp4" type="video/webm">
             <!-- Fallback to compressed MP4 -->
             
             Your browser does not support the video tag.
@@ -649,8 +649,8 @@
                     playPromise.then(() => {
                         // Playback started successfully
                         // You can unmute here if needed
-                        video.muted = true;
-                        video.playbackRate = 0.5; // Set playback speed
+                        video.muted = false;
+                        video.playbackRate = 1.0; // Changed to normal speed
                     })
                     .catch(error => {
                         // Auto-play was prevented
@@ -664,7 +664,7 @@
                         playButton.addEventListener('click', () => {
                             video.muted = false;
                             video.play();
-                            video.playbackRate = 0.5;
+                            video.playbackRate = 1.0; // Changed to normal speed
                             playButton.remove();
                         });
                     });
@@ -674,7 +674,7 @@
 
         // Update the video playback rate in the play event listener
         video.addEventListener('play', () => {
-            video.playbackRate = 0.5; // Changed from 0.7 to 0.5 (50% of normal speed)
+            video.playbackRate = 1.0; // Changed from 0.5 to 1.0 (normal speed)
         });
         
         // Replace or modify the video ended event listener
