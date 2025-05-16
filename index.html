@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Inauguration</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+            perspective: 1000px;
+        }
+        
+        .gift-box {
+            width: 220px;
+            height: 220px;
+            position: relative;
+            transform-style: preserve-3d;
+            cursor: pointer;
+            transition: transform 0.5s ease;
+        }
+        
+        .gift-box:hover {
+            transform: translateY(-10px);
+        }
+        
+        .box-body {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            background: #d61a1f;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+            text-align: center;
+        }
+        
+        .box-lid {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            background: #d61a1f;
+            border-radius: 8px;
+            transform-origin: top;
+            transition: transform 0.8s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .ribbon-vertical {
+            position: absolute;
+            width: 30px;
+            height: 100%;
+            background-color: #ffd700;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1;
+        }
+        
+        .ribbon-horizontal {
+            position: absolute;
+            width: 100%;
+            height: 30px;
+            background-color: #ffd700;
+            top: 50%;
+            left: 0;
+            transform: translateY(-50%);
+            z-index: 1;
+        }
+        
+        .ribbon-bow {
+            position: absolute;
+            width: 80px;
+            height: 40px;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 3;
+        }
+        
+        .bow-left, .bow-right {
+            position: absolute;
+            width: 35px;
+            height: 40px;
+            background-color: #d61a1f;
+            border-radius: 40px 40px 0 0;
+        }
+        
+        .bow-left {
+            left: 0;
+            transform: rotate(-30deg);
+        }
+        
+        .bow-right {
+            right: 0;
+            transform: rotate(30deg);
+        }
+        
+        .bow-knot {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: #d61a1f;
+            border-radius: 50%;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 3;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        
+        .gift-box.open .box-lid {
+            transform: rotateX(-110deg);
+        }
+        
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #ff3366;
+            opacity: 0;
+            z-index: 0;
+        }
+        
+        .surprise-message {
+            position: absolute;
+            top: 30%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #333;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            z-index: 10;
+        }
+        
+        .video-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000; /* Black background to avoid any gaps */
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.8s ease, visibility 0.8s ease; /* Slowed down transition */
+        }
+        
+        .video-container.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .video-animation {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* This ensures the video fills the entire screen edge to edge */
+            display: block; /* Removes any default spacing */
+        }
+        
+        .exit-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+            border: 2px solid white;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 101;
+        }
+        
+        .exit-button:hover {
+            background: rgba(255, 255, 255, 0.5);
+            transform: scale(1.1);
+        }
+        
+        .exit-button.visible {
+            opacity: 1;
+        }
+        
+        .click-prompt {
+            position: absolute;
+            color: #d61a1f;
+            font-weight: bold;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease, transform 0.5s ease;
+            z-index: 5;
+            animation: pulse 1.2s infinite alternate;
+        }
+        
+        @keyframes pulse {
+            0% { transform: translate(-50%, -50%) scale(1); }
+            100% { transform: translate(-50%, -50%) scale(1.2); }
+        }
+        
+        /* Adding a final welcome message styling */
+        .final-welcome {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            z-index: 102;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.8s ease, visibility 0.8s ease;
+        }
+        
+        .final-welcome.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .welcome-text {
+            font-size: 4rem;
+            font-weight: bold;
+            color: #fff;
+            text-align: center;
+            text-shadow: 0 0 10px rgba(255,255,255,0.5);
+            margin-bottom: 20px;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 1s forwards 0.5s;
+        }
+        
+        .welcome-subtext {
+            font-size: 2rem;
+            color: #fff;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 1s forwards 1s;
+        }
+        
+        .celebration-particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+        
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="gift-box">
+        <div class="box-body"></div>
+        <div class="box-lid">
+            <div class="ribbon-vertical"></div>
+            <div class="ribbon-horizontal"></div>
+            <div class="ribbon-bow">
+                <div class="bow-left"></div>
+                <div class="bow-right"></div>
+                <div class="bow-knot"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="surprise-message">🎉 Surprise! 🎉<br>Welcome to the Digital Inauguration!</div>
+    
+    <!-- Video container -->
+    <div class="video-container">
+        <video class="video-animation" autoplay muted playbackRate="0.7">
+            <!-- Replace with your actual video file -->
+            <source src="inauguration_animation.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+        <button class="exit-button">✕</button>
+    </div>
+    
+    <!-- Final welcome screen -->
+    <div class="final-welcome">
+        <div class="celebration-particles"></div>
+        <h1 class="welcome-text">Welcome to all of you present here!</h1>
+        <p class="welcome-subtext">We're honored by your presence at this Digital Inauguration</p>
+    </div>
+
+    <script>
+        const giftBox = document.querySelector('.gift-box');
+        const surpriseMessage = document.querySelector('.surprise-message');
+        const videoContainer = document.querySelector('.video-container');
+        const video = document.querySelector('.video-animation');
+        const exitButton = document.querySelector('.exit-button');
+        let clickPromptInterval;
+        const finalWelcome = document.querySelector('.final-welcome');
+        const celebrationParticles = document.querySelector('.celebration-particles');
+        
+        // Start spawning "Click box" texts
+        startClickPrompts();
+        
+        function startClickPrompts() {
+            // Create the first prompt
+            createClickPrompt();
+            
+            // Create new prompts every second
+            clickPromptInterval = setInterval(createClickPrompt, 1000);
+        }
+        
+        function createClickPrompt() {
+            const prompt = document.createElement('div');
+            prompt.classList.add('click-prompt');
+            prompt.textContent = 'Click box';
+            
+            // Random position around the box
+            const angle = Math.random() * Math.PI * 2;
+            const distance = 100 + Math.random() * 200; // Distance from center
+            
+            // Get box position
+            const boxRect = giftBox.getBoundingClientRect();
+            const boxCenterX = boxRect.left + boxRect.width / 2;
+            const boxCenterY = boxRect.top + boxRect.height / 2;
+            
+            // Calculate position
+            const x = boxCenterX + Math.cos(angle) * distance;
+            const y = boxCenterY + Math.sin(angle) * distance;
+            
+            // Apply styles
+            prompt.style.left = `${x}px`;
+            prompt.style.top = `${y}px`;
+            prompt.style.transform = 'translate(-50%, -50%)';
+            prompt.style.fontSize = `${16 + Math.random() * 10}px`;
+            
+            document.body.appendChild(prompt);
+            
+            // Animate in
+            setTimeout(() => {
+                prompt.style.opacity = '1';
+            }, 10);
+            
+            // Remove after some time
+            setTimeout(() => {
+                prompt.style.opacity = '0';
+                setTimeout(() => prompt.remove(), 500);
+            }, 3000 + Math.random() * 2000);
+        }
+        
+        giftBox.addEventListener('click', () => {
+            // Stop spawning click prompts
+            clearInterval(clickPromptInterval);
+            
+            // Remove all existing prompts
+            document.querySelectorAll('.click-prompt').forEach(prompt => {
+                prompt.style.opacity = '0';
+                setTimeout(() => prompt.remove(), 500);
+            });
+            
+            // Open the box first
+            giftBox.classList.add('open');
+            
+            // After the box opens, show brief confetti and then the video
+            setTimeout(() => {
+                // Create confetti effect
+                createConfetti();
+                
+                // Hide gift box after animation completes
+                setTimeout(() => {
+                    giftBox.style.display = 'none';
+                    surpriseMessage.style.opacity = '1';
+                    
+                    // Show and play full screen video
+                    videoContainer.classList.add('show');
+                    
+                    // Try to request full screen mode (note: this requires user interaction)
+                    try {
+                        if (videoContainer.requestFullscreen) {
+                            videoContainer.requestFullscreen();
+                        } else if (videoContainer.webkitRequestFullscreen) {
+                            videoContainer.webkitRequestFullscreen();
+                        } else if (videoContainer.msRequestFullscreen) {
+                            videoContainer.msRequestFullscreen();
+                        }
+                    } catch (e) {
+                        console.log("Fullscreen request failed:", e);
+                    }
+                    
+                    video.play();
+                }, 1000);
+            }, 500);
+        });
+        
+        // Slow down video playback when it starts
+        video.addEventListener('play', () => {
+            video.playbackRate = 0.7; // 70% of normal speed (adjust as needed)
+        });
+        
+        // Show exit button when video ends
+        video.addEventListener('ended', () => {
+            exitButton.classList.add('visible');
+        });
+        
+        // Handle exit button click - updated to show final welcome message
+        exitButton.addEventListener('click', () => {
+            // Exit fullscreen
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            }
+            
+            // Hide video container
+            videoContainer.classList.remove('show');
+            
+            // Show the final welcome message with animations
+            finalWelcome.classList.add('visible');
+            createCelebrationParticles();
+        });
+        
+        function createConfetti() {
+            for (let i = 0; i < 100; i++) {
+                const confetti = document.createElement('div');
+                confetti.classList.add('confetti');
+                
+                // Random position, color and size
+                const size = Math.random() * 15 + 5;
+                const x = Math.random() * window.innerWidth;
+                const y = window.innerHeight;
+                
+                const colors = ['#ff3366', '#ff6b6b', '#ffdd59', '#5affff', '#6b5bff', '#5aff5a'];
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                
+                confetti.style.width = `${size}px`;
+                confetti.style.height = `${size}px`;
+                confetti.style.left = `${x}px`;
+                confetti.style.top = `${y}px`;
+                confetti.style.backgroundColor = color;
+                confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+                confetti.style.opacity = '1';
+                
+                document.body.appendChild(confetti);
+                
+                // Animate the confetti
+                const angle = Math.random() * Math.PI * 2;
+                const velocity = Math.random() * 3 + 2;
+                const xVelocity = Math.sin(angle) * velocity;
+                const yVelocity = Math.cos(angle) * -velocity - 2;
+                
+                let posX = x;
+                let posY = y;
+                let rotation = 0;
+                
+                function animate() {
+                    posX += xVelocity;
+                    posY += yVelocity;
+                    rotation += Math.random() * 10;
+                    
+                    confetti.style.transform = `translate(${posX - x}px, ${posY - y}px) rotate(${rotation}deg)`;
+                    confetti.style.opacity = Math.max(0, 1 - (y - posY) / window.innerHeight);
+                    
+                    if (posY > -50) {
+                        requestAnimationFrame(animate);
+                    } else {
+                        confetti.remove();
+                    }
+                }
+                
+                setTimeout(() => {
+                    animate();
+                }, Math.random() * 1000);
+            }
+        }
+        
+        function createCelebrationParticles() {
+            for (let i = 0; i < 60; i++) {
+                const particle = document.createElement('div');
+                
+                // Random properties
+                const size = Math.random() * 15 + 5;
+                const x = Math.random() * window.innerWidth;
+                const y = Math.random() * window.innerHeight;
+                
+                const colors = ['#FFD700', '#FF6B6B', '#8A2BE2', '#4DE8E8', '#50C878', '#FF69B4'];
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                
+                // Apply styles
+                particle.style.position = 'absolute';
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.backgroundColor = color;
+                particle.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+                particle.style.left = `${x}px`;
+                particle.style.top = `${y}px`;
+                particle.style.opacity = '0.8';
+                particle.style.boxShadow = `0 0 10px ${color}`;
+                
+                // Add animation
+                particle.style.animation = `
+                    float ${3 + Math.random() * 7}s ease-in-out infinite,
+                    twinkle ${1 + Math.random() * 2}s ease-in-out infinite alternate
+                `;
+                
+                // Custom keyframes for this element
+                const keyframes = `
+                @keyframes float_${i} {
+                    0% { transform: translate(0, 0) rotate(0deg); }
+                    50% { transform: translate(${Math.random() * 100 - 50}px, ${Math.random() * -100}px) rotate(180deg); }
+                    100% { transform: translate(0, 0) rotate(360deg); }
+                }
+                @keyframes twinkle {
+                    0% { opacity: 0.4; }
+                    100% { opacity: 1; }
+                }`;
+                
+                // Add keyframes to document
+                const style = document.createElement('style');
+                style.innerHTML = keyframes;
+                document.head.appendChild(style);
+                
+                particle.style.animation = `float_${i} ${3 + Math.random() * 7}s ease-in-out infinite, twinkle ${1 + Math.random() * 2}s ease-in-out infinite alternate`;
+                
+                celebrationParticles.appendChild(particle);
+            }
+        }
+    </script>
+</body>
+</html>
